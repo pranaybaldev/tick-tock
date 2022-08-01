@@ -51,16 +51,13 @@ export default function Home({ slots }) {
       });
   };
 
-  const timeSlotValidator = (slotTime) => {
-    console.log('slots', slots);
-    slots.map((slot) => {
-      if(slot.start === slotTime.getTime()){
-        console.log(slot, 'false')
-        return false
-      }
-    })
-    console.log('true')
-    return true;
+  const timeSlotValidator = (slotTime) => { //should be optimized. sorting, filtering etc
+    const startTimestamps = slots.map((slot) => slot.start);
+    if(startTimestamps.includes(slotTime.getTime())){
+      return false;
+    } else {
+      return true;
+    }
   }
 
   return (
