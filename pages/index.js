@@ -16,7 +16,7 @@ export default function Home({ slots }) {
     let myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     let res = await fetch(
-      `http://localhost:3000/api/slot`, //change this
+      `https://tick-tock.vercel.app/api/slot`,
       {
         method: "POST",
         headers: myHeaders,
@@ -110,7 +110,7 @@ export default function Home({ slots }) {
 
 export async function getServerSideProps({query}) {
   try {
-    let res = await fetch(`http://localhost:3000/api/slot?user=${query?.user || "pb"}`);
+    let res = await fetch(`https://tick-tock.vercel.app/api/slot?user=${query?.user || "pb"}`);
     res = await res.json();
     const slots = res?.message;
     return {
