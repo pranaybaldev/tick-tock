@@ -1,44 +1,67 @@
 import Head from 'next/head'
-import clientPromise from '../lib/mongodb'
 import DayTimePicker from '@mooncake-dev/react-day-time-picker';
 import { useState } from 'react';
+import { useRouter } from 'next/router'
 
-export default function Home({ isConnected }) {
+export default function Home({ slots }) {
 
   const [isScheduling, setIsScheduling] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduleErr, setScheduleErr] = useState('');
 
-  function fakeRequest(data) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Uncomment below to trigger error:
-        // return reject('Error: KABOOM!');
-        resolve({
-          status: 'ok',
-          scheduled: data
-        });
-      }, 2e3);
-    });
-  }
+  const router = useRouter()
+  const { user } = router.query
+
+  const addSlot = async (body) => {
+    let myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    let res = await fetch(
+      `http://localhost:3000/api/slot`, //change this
+      {
+        method: "POST",
+        headers: myHeaders,
+        body: JSON.stringify(body),
+        redirect: "follow",
+      }
+    );
+
+    res = await res.json();
+  };
 
   const handleScheduled = date => {
-    console.log('scheduled: ', date);
     setIsScheduling(true);
     setScheduleErr('');
-    fakeRequest(date)
+    let body = {
+      "user": user || "pb",
+      "start": new Date(date).getTime(),
+      "timeSlotSize": 15,
+    }
+    addSlot(body)
       .then(json => {
         setScheduleErr('');
         setIsScheduled(true);
-        console.log('fake response: ', json);
+        setTimeout(() => router.reload(window.location.pathname), 3e3)
       })
       .catch(err => {
+        console.log(err);
         setScheduleErr(err);
       })
       .finally(() => {
         setIsScheduling(false);
       });
   };
+
+  const timeSlotValidator = (slotTime) => {
+    console.log('slots', slots);
+    slots.map((slot) => {
+      if(slot.start === slotTime.getTime()){
+        console.log(slot, 'false')
+        return false
+      }
+    })
+    console.log('true')
+    return true;
+  }
 
   return (
     <div className="container">
@@ -51,7 +74,9 @@ export default function Home({ isConnected }) {
       isLoading={isScheduling}
       isDone={isScheduled}
       err={scheduleErr}
-      onConfirm={handleScheduled} />
+      onConfirm={handleScheduled}
+      timeSlotValidator={timeSlotValidator}
+      />
       
       <style jsx>{`
         .container {
@@ -86,25 +111,20 @@ export default function Home({ isConnected }) {
   )
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps({query}) {
   try {
-    await clientPromise
-    // `await clientPromise` will use the default database passed in the MONGODB_URI
-    // However you can use another database (e.g. myDatabase) by replacing the `await clientPromise` with the following code:
-    //
-    // `const client = await clientPromise`
-    // `const db = client.db("myDatabase")`
-    //
-    // Then you can execute queries against your database like so:
-    // db.find({}) or any of the MongoDB Node Driver commands
-
+    let res = await fetch(`http://localhost:3000/api/slot?user=${query?.user || "pb"}`);
+    res = await res.json();
+    const slots = res?.message;
     return {
-      props: { isConnected: true },
-    }
+      props: {
+        slots,
+      },
+    };
   } catch (e) {
     console.error(e)
     return {
-      props: { isConnected: false },
+      props: { slots: [] },
     }
   }
 }

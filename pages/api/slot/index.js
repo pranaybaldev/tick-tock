@@ -71,7 +71,7 @@ async function updateSlot(req, res) {
       {
         _id: new ObjectId(req.body._id),
       },
-      { $set: { parent: req.body.parent } }
+      { $set: { start: req.body.start } }
     );
     return res.json({
       message: "slot updated successfully",
