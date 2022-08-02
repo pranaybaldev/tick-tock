@@ -18,4 +18,4 @@ Your app should be up and running on [http://localhost:3000](http://localhost:30
 ### Notes
 
 - Change user by adding the query param user=username in the URL. For eg: "https://tick-tock.vercel.app/?user=pb"
-- Page will redirect after 3 seconds after slot is booked
+- Page will redirect in 3 seconds after the slot is booked
